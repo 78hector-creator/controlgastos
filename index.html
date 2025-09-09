@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Gastos Personales</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            margin-right: 15px;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: white;
+        }
+
+        .income-icon { background: linear-gradient(135deg, #27ae60, #2ecc71); }
+        .expense-icon { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+        .balance-icon { background: linear-gradient(135deg, #3498db, #2980b9); }
+
+        .card-title {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .card-amount {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .income { color: #27ae60; }
+        .expense { color: #e74c3c; }
+        .balance { color: #3498db; }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 0 30px 30px;
+        }
+
+        .form-section, .transactions-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 10px 20px rgba(231, 76, 60, 0.3);
+        }
+
+        .transaction-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #3498db;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .transaction-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .transaction-item.expense {
+            border-left-color: #e74c3c;
+        }
+
+        .transaction-item.income {
+            border-left-color: #27ae60;
+        }
+
+        .transaction-details h4 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .transaction-meta {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+
+        .transaction-amount {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .filter-group select, .filter-group input {
+            padding: 8px 12px;
+            font-size: 0.9rem;
+        }
+
+        .no-transactions {
+            text-align: center;
+            color: #7f8c8d;
+            font-style: italic;
+            padding: 40px 20px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .filters {
+                flex-direction: column;
+            }
+            
+            .transaction-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn-export {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            font-size: 0.9rem;
+            padding: 10px 20px;
+        }
+
+        .btn-export:hover {
+            box-shadow: 0 10px 20px rgba(39, 174, 96, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-wallet"></i> Control de Gastos Personales</h1>
+            <p>Gestiona tus finanzas de manera inteligente</p>
+        </div>
+
+        <div class="dashboard">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon income-icon">
+                        <i class="fas fa-arrow-up"></i>
+                    </div>
+                    <div class="card-title">Ingresos Totales</div>
+                </div>
+                <div class="card-amount income" id="totalIncome">$0.00</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon expense-icon">
+                        <i class="fas fa-arrow-down"></i>
+                    </div>
+                    <div class="card-title">Gastos Totales</div>
+                </div>
+                <div class="card-amount expense" id="totalExpenses">$0.00</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon balance-icon">
+                        <i class="fas fa-balance-scale"></i>
+                    </div>
+                    <div class="card-title">Balance</div>
+                </div>
+                <div class="card-amount balance" id="totalBalance">$0.00</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="form-section">
+                <h2 class="section-title">
+                    <i class="fas fa-plus-circle"></i>
+                    Agregar Transacción
+                </h2>
+                
+                <form id="transactionForm">
+                    <div class="form-group">
+                        <label for="type">Tipo de Transacción</label>
+                        <select id="type" required>
+                            <option value="">Seleccionar tipo</option>
+                            <option value="income">Ingreso</option>
+                            <option value="expense">Gasto</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Descripción</label>
+                        <input type="text" id="description" placeholder="Ej: Salario, Comida, Transporte..." required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="amount">Cantidad</label>
+                        <input type="number" id="amount" step="0.01" min="0" placeholder="0.00" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="category">Categoría</label>
+                        <select id="category" required>
+                            <option value="">Seleccionar categoría</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="date">Fecha</label>
+                        <input type="date" id="date" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="notes">Notas (Opcional)</label>
+                        <textarea id="notes" rows="3" placeholder="Información adicional..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn">
+                        <i class="fas fa-save"></i>
+                        Guardar Transacción
+                    </button>
+                </form>
+            </div>
+
+            <div class="transactions-section">
+                <h2 class="section-title">
+                    <i class="fas fa-list"></i>
+                    Historial de Transacciones
+                </h2>
+
+                <div class="export-buttons">
+                    <button class="btn btn-export" onclick="exportToCSV()">
+                        <i class="fas fa-download"></i>
+                        Exportar CSV
+                    </button>
+                    <button class="btn btn-danger" onclick="clearAllData()">
+                        <i class="fas fa-trash"></i>
+                        Limpiar Todo
+                    </button>
+                </div>
+
+                <div class="filters">
+                    <div class="filter-group">
+                        <label for="filterType">Tipo</label>
+                        <select id="filterType">
+                            <option value="">Todos</option>
+                            <option value="income">Ingresos</option>
+                            <option value="expense">Gastos</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filterCategory">Categoría</label>
+                        <select id="filterCategory">
+                            <option value="">Todas</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filterMonth">Mes</label>
+                        <input type="month" id="filterMonth">
+                    </div>
+                </div>
+
+                <div id="transactionsList">
+                    <div class="no-transactions">
+                        <i class="fas fa-inbox" style="font-size: 3rem; color: #bdc3c7; margin-bottom: 15px;"></i>
+                        <p>No hay transacciones registradas aún.</p>
+                        <p>¡Comienza agregando tu primera transacción!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Categorías predefinidas
+        const categories = {
+            income: [
+                'Salario', 'Freelance', 'Inversiones', 'Bonificaciones', 
+                'Ventas', 'Renta', 'Otros ingresos'
+            ],
+            expense: [
+                'Alimentación', 'Transporte', 'Vivienda', 'Servicios', 
+                'Salud', 'Educación', 'Entretenimiento', 'Ropa', 
+                'Tecnología', 'Otros gastos'
+            ]
+        };
+
+        // Variables globales
+        let transactions = [];
+        let currentEditId = null;
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTransactions();
+            setTodayDate();
+            updateCategoryOptions();
+            setupEventListeners();
+            updateDashboard();
+            renderTransactions();
+        });
+
+        // Event Listeners
+        function setupEventListeners() {
+            document.getElementById('transactionForm').addEventListener('submit', handleFormSubmit);
+            document.getElementById('type').addEventListener('change', updateCategoryOptions);
+            document.getElementById('filterType').addEventListener('change', renderTransactions);
+            document.getElementById('filterCategory').addEventListener('change', renderTransactions);
+            document.getElementById('filterMonth').addEventListener('change', renderTransactions);
+        }
+
+        // Establecer fecha de hoy por defecto
+        function setTodayDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').value = today;
+        }
+
+        // Actualizar opciones de categoría basadas en el tipo
+        function updateCategoryOptions() {
+            const type = document.getElementById('type').value;
+            const categorySelect = document.getElementById('category');
+            const filterCategorySelect = document.getElementById('filterCategory');
+            
+            categorySelect.innerHTML = '<option value="">Seleccionar categoría</option>';
+            
+            if (type && categories[type]) {
+                categories[type].forEach(cat => {
+                    categorySelect.innerHTML += `<option value="${cat}">${cat}</option>`;
+                });
+            }
+
+            // Actualizar filtro de categorías
+            updateFilterCategories();
+        }
+
+        // Actualizar filtro de categorías
+        function updateFilterCategories() {
+            const filterCategorySelect = document.getElementById('filterCategory');
+            const currentValue = filterCategorySelect.value;
+            
+            filterCategorySelect.innerHTML = '<option value="">Todas</option>';
+            
+            const allCategories = [...categories.income, ...categories.expense];
+            const uniqueCategories = [...new Set(allCategories)];
+            
+            uniqueCategories.forEach(cat => {
+                filterCategorySelect.innerHTML += `<option value="${cat}">${cat}</option>`;
+            });
+            
+            filterCategorySelect.value = currentValue;
+        }
+
+        // Manejar envío del formulario
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            const formData = {
+                id: currentEditId || Date.now(),
+                type: document.getElementById('type').value,
+                description: document.getElementById('description').value,
+                amount: parseFloat(document.getElementById('amount').value),
+                category: document.getElementById('category').value,
+                date: document.getElementById('date').value,
+                notes: document.getElementById('notes').value,
+                timestamp: new Date().toISOString()
+            };
+
+            if (currentEditId) {
+                updateTransaction(formData);
+                currentEditId = null;
+            } else {
+                addTransaction(formData);
+            }
+
+            resetForm();
+            saveTransactions();
+            updateDashboard();
+            renderTransactions();
+        }
+
+        // Agregar transacción
+        function addTransaction(transaction) {
+            transactions.unshift(transaction);
+            showNotification('Transacción agregada exitosamente', 'success');
+        }
+
+        // Actualizar transacción
+        function updateTransaction(updatedTransaction) {
+            const index = transactions.findIndex(t => t.id === updatedTransaction.id);
+            if (index !== -1) {
+                transactions[index] = updatedTransaction;
+                showNotification('Transacción actualizada exitosamente', 'success');
+            }
+        }
+
+        // Eliminar transacción
+        function deleteTransaction(id) {
+            if (confirm('¿Estás seguro de que deseas eliminar esta transacción?')) {
+                transactions = transactions.filter(t => t.id !== id);
+                saveTransactions();
+                updateDashboard();
+                renderTransactions();
+                showNotification('Transacción eliminada', 'error');
+            }
+        }
+
+        // Resetear formulario
+        function resetForm() {
+            document.getElementById('transactionForm').reset();
+            setTodayDate();
+            updateCategoryOptions();
+        }
+
+        // Actualizar dashboard
+        function updateDashboard() {
+            const totals = transactions.reduce((acc, transaction) => {
+                if (transaction.type === 'income') {
+                    acc.income += transaction.amount;
+                } else {
+                    acc.expenses += transaction.amount;
+                }
+                return acc;
+            }, { income: 0, expenses: 0 });
+
+            const balance = totals.income - totals.expenses;
+
+            document.getElementById('totalIncome').textContent = formatCurrency(totals.income);
+            document.getElementById('totalExpenses').textContent = formatCurrency(totals.expenses);
+            document.getElementById('totalBalance').textContent = formatCurrency(balance);
+
+            // Cambiar color del balance según sea positivo o negativo
+            const balanceElement = document.getElementById('totalBalance');
+            balanceElement.className = balance >= 0 ? 'card-amount balance' : 'card-amount expense';
+        }
+
+        // Renderizar transacciones
+        function renderTransactions() {
+            const container = document.getElementById('transactionsList');
+            const filteredTransactions = getFilteredTransactions();
+
+            if (filteredTransactions.length === 0) {
+                container.innerHTML = `
+                    <div class="no-transactions">
+                        <i class="fas fa-search" style="font-size: 3rem; color: #bdc3c7; margin-bottom: 15px;"></i>
+                        <p>No se encontraron transacciones con los filtros aplicados.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filteredTransactions.map(transaction => `
+                <div class="transaction-item ${transaction.type}">
+                    <div class="transaction-details">
+                        <h4>${transaction.description}</h4>
+                        <div class="transaction-meta">
+                            <span><i class="fas fa-tag"></i> ${transaction.category}</span> |
+                            <span><i class="fas fa-calendar"></i> ${formatDate(transaction.date)}</span>
+                            ${transaction.notes ? `<br><span><i class="fas fa-sticky-note"></i> ${transaction.notes}</span>` : ''}
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div class="transaction-amount ${transaction.type}">
+                            ${transaction.type === 'income' ? '+' : '-'}${formatCurrency(transaction.amount)}
+                        </div>
+                        <button class="delete-btn" onclick="deleteTransaction(${transaction.id})" title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Obtener transacciones filtradas
+        function getFilteredTransactions() {
+            const typeFilter = document.getElementById('filterType').value;
+            const categoryFilter = document.getElementById('filterCategory').value;
+            const monthFilter = document.getElementById('filterMonth').value;
+
+            return transactions.filter(transaction => {
+                const matchesType = !typeFilter || transaction.type === typeFilter;
+                const matchesCategory = !categoryFilter || transaction.category === categoryFilter;
+                const matchesMonth = !monthFilter || transaction.date.startsWith(monthFilter);
+                
+                return matchesType && matchesCategory && matchesMonth;
+            });
+        }
+
+        // Formatear moneda
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('es-MX', {
+                style: 'currency',
+                currency: 'MXN'
+            }).format(amount);
+        }
+
+        // Formatear fecha
+        function formatDate(dateString) {
+            const date = new Date(dateString + 'T00:00:00');
+            return date.toLocaleDateString('es-MX', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        // Guardar en almacenamiento local (simulado con variable)
+        function saveTransactions() {
+            // En un entorno real, usarías localStorage aquí
+            // localStorage.setItem('transactions', JSON.stringify(transactions));
+        }
+
+        // Cargar transacciones (simulado)
+        function loadTransactions() {
+            // En un entorno real, cargarías desde localStorage aquí
+            // const saved = localStorage.getItem('transactions');
+            // transactions = saved ? JSON.parse(saved) : [];
+            transactions = [];
+        }
+
+        // Exportar a CSV
+        function exportToCSV() {
+            if (transactions.length === 0) {
+                alert('No hay transacciones para exportar');
+                return;
+            }
+
+            const headers = ['Fecha', 'Tipo', 'Descripción', 'Categoría', 'Cantidad', 'Notas'];
+            const csvContent = [
+                headers.join(','),
+                ...transactions.map(t => [
+                    t.date,
+                    t.type === 'income' ? 'Ingreso' : 'Gasto',
+                    `"${t.description}"`,
+                    `"${t.category}"`,
+                    t.amount,
+                    `"${t.notes || ''}"`
+                ].join(','))
+            ].join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `gastos_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Limpiar todos los datos
+        function clearAllData() {
+            if (confirm('¿Estás seguro de que deseas eliminar TODAS las transacciones? Esta acción no se puede deshacer.')) {
+                transactions = [];
+                saveTransactions();
+                updateDashboard();
+                renderTransactions();
+                showNotification('Todos los datos han sido eliminados', 'error');
+            }
+        }
+
+        // Mostrar notificación
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#27ae60' : '#e74c3c'};
+                color: white;
+                padding: 15px 20px;
+                border-radius: 10px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                z-index: 1000;
+                font-weight: 600;
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
